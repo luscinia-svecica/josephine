@@ -18,7 +18,7 @@ CREW_EMOJI = {
     'Yas' : ':mag:',
     'Meredith' : ':wolf:',
     'Joseph' : ':performing_arts:',
-    'Gale' : ':tophat:',
+    'Lucy' : ':tophat:',
     'Diana' : ':crown:'
 }
 REGISTERED_USERS = {
@@ -42,11 +42,11 @@ def process_diceroll(dicestring):
 
     if dicestring.find('h') != -1:
         HUNGRY=True
-        print("hunger dice detected")
+        #print("hunger dice detected")
         numdice = int(dicestring.partition('d')[0])
-        print(numdice," regular dice")
+        #print(numdice," regular dice")
         numhun = int(dicestring.partition('d')[2].partition('h')[2])
-        print(numhun," hunger dice")
+        #print(numhun," hunger dice")
         if (numdice-numhun) < 1:
             numhun = numdice
             
@@ -56,15 +56,15 @@ def process_diceroll(dicestring):
         for i in HUNRESULTS:
             if i < 2:
                 HUNGER_ONE=True
-                print("1 on a hunger die!")
+                #print("1 on a hunger die!")
             elif i > 9:
                 HUNGER_TEN=True
-                print("10 on a hunger die!")
+                #print("10 on a hunger die!")
 
         REPLY_STRING += str(RESULTS)
         REPLY_STRING += str(HUNRESULTS)
     else:
-        print("no hunger dice, sweet")
+        #print("no hunger dice, sweet")
         RESULTS=roll_dice(dicestring.partition('d')[0])
         REPLY_STRING += str(RESULTS)
 
