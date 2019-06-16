@@ -235,4 +235,3 @@ async def on_message(message):
             await message.channel.send(helptext)
         
 
-client.run('NTg5MjEwODYwMjI4OTY4NDQ4.XQQZNA.M7yQT1DXIwpZTehqF5fPFfiOloI')
