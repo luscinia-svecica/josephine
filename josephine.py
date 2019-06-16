@@ -2,6 +2,7 @@
 
 import random
 import discord
+import re
 
 FAVORITE='Yas'
 CRITICAL=False
@@ -44,7 +45,7 @@ def process_diceroll(dicestring):
         print("hunger dice detected")
         numdice = int(dicestring.partition('d')[0])
         print(numdice," regular dice")
-        numhun = int(dicestring.partition('d')[2].partition('h')[0])
+        numhun = int(dicestring.partition('d')[2].partition('h')[2])
         print(numhun," hunger dice")
         if (numdice-numhun) < 1:
             numhun = numdice
@@ -122,8 +123,14 @@ def check_successes(rolls):
         
     REPLY_STRING += ". Successes: " + str(successes)
 
-def roll_as(name):
-    print("rolling as" + name)
+def lookup_user(name):
+    global ROLL_AS
+    if name in CREW_EMOJI.keys():
+        ROLL_AS += CREW_EMOJI[name]+" "
+        ROLL_AS += name
+    if ROLL_AS.find(FAVORITE) != -1 and random.randrange(1,4) == 2:
+        ROLL_AS += " :heart_eyes:"
+
 
 client = discord.Client()
 
@@ -149,16 +156,26 @@ async def on_message(message):
         if message.content.find('log off, Josephine') != -1:
             await message.channel.send("Hmmph! :triumph: Bye, then.")
             await client.logout()
-        if message.content.startswith('_roll'):
+        if message.content.startswith(',roll'):
             REPLY_STRING=""
-            dicestring = message.content.partition('_roll ')[2]
+            dicestring = message.content.partition(',roll ')[2]
             if dicestring.find(' as ') != -1:
                 name = dicestring.partition(' as ')[2]
-                if name in CREW_EMOJI.keys():
-                   ROLL_AS += CREW_EMOJI[name]+" "
-                ROLL_AS += name
-                if ROLL_AS.find(FAVORITE) != -1 and random.randrange(1,4) == 2:
-                    ROLL_AS += " :heart_eyes:"
+                lookup_user(name)
+                REPLY_STRING=ROLL_AS + " rolls "
+                process_diceroll(dicestring.partition(' as ')[0])
+                RESULTS += HUNRESULTS
+                check_successes(RESULTS)
+            elif str(message.author.nick) in REGISTERED_USERS.keys():
+                name = REGISTERED_USERS[str(message.author.nick)]
+                lookup_user(name)
+                REPLY_STRING=ROLL_AS + " rolls "
+                process_diceroll(dicestring.partition(' as ')[0])
+                RESULTS += HUNRESULTS
+                check_successes(RESULTS)
+            elif str(message.author.name) in REGISTERED_USERS.keys():
+                name = REGISTERED_USERS[str(message.author.name)]
+                lookup_user(name)
                 REPLY_STRING=ROLL_AS + " rolls "
                 process_diceroll(dicestring.partition(' as ')[0])
                 RESULTS += HUNRESULTS
@@ -170,16 +187,16 @@ async def on_message(message):
                 check_successes(RESULTS)
 
             if HUNGER_TEN==True and CRITICAL==True:
-                REPLY_STRING += " :smiling_imp: **MESSY CRITICAL** "
+                REPLY_STRING += " :smiling_imp: **MESSY CRITICAL** :smiling_imp:"
 
             elif NO_SUCCESSES==True and HUNGER_ONE==True: 
-                REPLY_STRING += " :skull: ***bEsTIal fAiLuRe***"
+                REPLY_STRING += " :skull: ***bEsTIal fAiLuRe*** :skull:"
 
             await message.channel.send(REPLY_STRING)
 
-        if message.content.startswith('_register'):
+        if message.content.startswith(',register'):
 
-            char_name = message.content.partition('_register ')[2]
+            char_name = message.content.partition(',register ')[2]
 
             if message.author.nick is not None:
                 if str(message.author.nick) in REGISTERED_USERS.keys():
@@ -194,7 +211,7 @@ async def on_message(message):
                 await message.channel.send("Registered " + str(message.author.name) + " as " + char_name)
             print(REGISTERED_USERS)
 
-        if message.content.startswith('_unregister'):
+        if message.content.startswith(',unregister'):
             if message.author.nick is not None:
                 del REGISTERED_USERS[message.author.nick]
                 await message.channel.send("un-registered " + str(message.author.nick))
