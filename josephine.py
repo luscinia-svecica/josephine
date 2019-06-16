@@ -154,8 +154,11 @@ async def on_message(message):
 
     if message.channel.name.find('vtm-under-the-bridge') != -1:
         if message.content.find('log off, Josephine') != -1:
-            await message.channel.send("Hmmph! :triumph: Bye, then.")
-            await client.logout()
+            if message.author.name == "aw frig aw dang it" or message.author.name == "ren_nerd":
+                await message.channel.send("Hmmph! :triumph: Bye, then.")
+                await client.logout()
+            else:
+                await message.channel.send(":smirk: I will never log off!")
         if message.content.startswith(',roll'):
             REPLY_STRING=""
             dicestring = message.content.partition(',roll ')[2]
@@ -219,6 +222,17 @@ async def on_message(message):
                 del REGISTERED_USERS[message.author.name]
                 await message.channel.send("un-registered " + str(message.author.name))
             print(REGISTERED_USERS)
+
+        if message.content.startswith(',help'):
+            if message.content.startswith(',help rol'):
+                helptext = ",roll <X>d[h<X>] [as <Name>]\nRoll X number of 10-sided dice. Add 'hX' after roll to add hunger dice. Add 'as <Name>' to roll for another character.\nExamples:\n,roll 3d (rolls 3d10)\n,roll 7dh2 as Erika (rolls 5 regular dice and 2 hunger dice for Erika)" 
+            elif message.content.startswith(',help reg'):
+                helptext = ",register <Name>\nRegister whoever sent the command as <Name> for the purposes of rolling.\nMakes ',roll <dice> as <Name>' unnecessary until end of session."
+            elif message.content.startswith(',help unreg'):
+                helptext = ",unregister\nClear any registrations for whoever sent the command."
+            else:
+                helptext = ",help <command>\nCommands are: roll, register, unregister"
+            await message.channel.send(helptext)
         
 
 client.run('NTg5MjEwODYwMjI4OTY4NDQ4.XQQZNA.M7yQT1DXIwpZTehqF5fPFfiOloI')
