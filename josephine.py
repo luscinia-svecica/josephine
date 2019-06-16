@@ -5,6 +5,7 @@ import discord
 import re
 
 FAVORITE='Yas'
+STORYTELLER='ren_nerd'
 CRITICAL=False
 HUNGER_ONE=False
 HUNGER_TEN=False
@@ -19,7 +20,8 @@ CREW_EMOJI = {
     'Meredith' : ':wolf:',
     'Joseph' : ':performing_arts:',
     'Lucy' : ':tophat:',
-    'Diana' : ':crown:'
+    'Diana' : ':crown:',
+    'Storyteller' : ':book:'
 }
 REGISTERED_USERS = {
 
@@ -125,6 +127,7 @@ def check_successes(rolls):
 
 def lookup_user(name):
     global ROLL_AS
+
     if name in CREW_EMOJI.keys():
         ROLL_AS += CREW_EMOJI[name]+" "
         ROLL_AS += name
@@ -148,6 +151,8 @@ async def on_message(message):
     global RESULTS
     global HUNRESULTS
     global FAVORITE
+    global CREW_EMOJI
+    global STORYTELLER
 
     if message.author == client.user:
         return
@@ -163,12 +168,20 @@ async def on_message(message):
             REPLY_STRING=""
             dicestring = message.content.partition(',roll ')[2]
             if dicestring.find(' as ') != -1:
-                name = dicestring.partition(' as ')[2]
-                lookup_user(name)
-                REPLY_STRING=ROLL_AS + " rolls "
-                process_diceroll(dicestring.partition(' as ')[0])
-                RESULTS += HUNRESULTS
-                check_successes(RESULTS)
+                if str(message.author.name) == STORYTELLER:
+                    ROLL_AS += CREW_EMOJI['Storyteller']+" "
+                    ROLL_AS += "Storyteller rolls as " + dicestring.partition(' as ')[2]
+                    REPLY_STRING=ROLL_AS + ": "
+                    process_diceroll(dicestring.partition(' as ')[0])
+                    RESULTS += HUNRESULTS
+                    check_successes(RESULTS)
+                else:    
+                    name = dicestring.partition(' as ')[2]
+                    lookup_user(name)
+                    REPLY_STRING=ROLL_AS + " rolls "
+                    process_diceroll(dicestring.partition(' as ')[0])
+                    RESULTS += HUNRESULTS
+                    check_successes(RESULTS)
             elif str(message.author.nick) in REGISTERED_USERS.keys():
                 name = REGISTERED_USERS[str(message.author.nick)]
                 lookup_user(name)
@@ -178,6 +191,13 @@ async def on_message(message):
                 check_successes(RESULTS)
             elif str(message.author.name) in REGISTERED_USERS.keys():
                 name = REGISTERED_USERS[str(message.author.name)]
+                lookup_user(name)
+                REPLY_STRING=ROLL_AS + " rolls "
+                process_diceroll(dicestring.partition(' as ')[0])
+                RESULTS += HUNRESULTS
+                check_successes(RESULTS)
+            elif str(message.author.name) == STORYTELLER:
+                name = "Storyteller"
                 lookup_user(name)
                 REPLY_STRING=ROLL_AS + " rolls "
                 process_diceroll(dicestring.partition(' as ')[0])
