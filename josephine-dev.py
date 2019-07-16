@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
-import random
+import secrets
+import shelve
 import discord
 import re
+#import snoop
 
 STORYTELLER='ren_nerd'
 REPLY_STRING=""
 
-REGISTERED_USERS = {}
+REGISTERED_USERS = shelve.open("coterie.db", writeback=True)
 
 
 class Player:
@@ -15,6 +17,7 @@ class Player:
     def __init__ (self, username, charname, nick=False, icon=False, emoji=False):
         self.username = username
         self.charname = charname
+        self.proc = False
         if nick:
             self.nick = nick
         if icon:
@@ -25,13 +28,15 @@ class Player:
             self.emoji = emoji
         else:
             self.emoji = ":metal:"
+    #@snoop
+    def reset(self):
+        # this is so people can easily reset their nickname, icon, and emoji to
+        # the default
+        DEFAULT_USERS = {}
 
-REGISTERED_USERS['aw frig aw dang it'] = Player('aw frig aw dang it', 'Lucy', 'Daphne', ':crystal_ball:', ':flower_playing_cards:')
-REGISTERED_USERS['A Real Life Cat'] = Player('A Real Life Cat', 'Yas', 'Sophia', ':mag:', ':stuck_out_tongue_winking_eye:')
-REGISTERED_USERS['Uuneya'] = Player('Uuneya', 'Meredith', 'Uuneya', ':wolf:', ':nail_care:')
-REGISTERED_USERS['daisy_mouse'] = Player('daisy_mouse', 'Joseph', 'Daisy', ':man_in_tuxedo:', ':rat:')
-REGISTERED_USERS['Fender Anarchist'] = Player('Fender Anarchist', 'Diana', 'Jess', ':crown:', ':moneybag:')
-REGISTERED_USERS['ren_nerd'] = Player('ren_nerd', 'Storyteller', 'Tiffany', ':book:', ':sparkles:')
+        self.charname = DEFAULT_USERS[self.username].charname
+        self.icon = DEFAULT_USERS[self.username].icon
+        self.emoji = DEFAULT_USERS[self.username].emoji
 
 class Roll:
 
@@ -58,7 +63,7 @@ class Roll:
     def __rolld10s(self,num):
         rolls = []
         for i in range(0,int(num)):
-            rolls.append(random.randrange(1,11))
+            rolls.append(secrets.choice(range(1,11)))
 
         return rolls
 
@@ -123,6 +128,7 @@ async def on_message(message):
     if message.channel.name.find('vtm-under-the-bridge') != -1:
         if message.content.find('log off, Josephine') != -1:
             if message.author.name == "aw frig aw dang it" or message.author.name == "ren_nerd":
+                REGISTERED_USERS.close()
                 await message.channel.send("Hmmph! :triumph: Bye, then.")
                 await client.logout()
             else:
@@ -213,17 +219,58 @@ async def on_message(message):
                 del REGISTERED_USERS[message.author.name]
 
             await message.channel.send(reply)
+
+
+        if message.content.startswith(',icon'):
+            icon = message.content.partition(',icon ')[2]
+
+            try:
+                REGISTERED_USERS[message.author.name].icon = icon
+                reply = f"Alright, {REGISTERED_USERS[message.author.name].charname}, your new icon is {REGISTERED_USERS[message.author.name].icon}"
+            except:
+                reply = f"Sorry, {REGISTERED_USERS[message.author.name].charname}, that didn't work! Bummer!"
+
+            await message.channel.send(reply)
+
+
+        if message.content.startswith(',emoji'):
+            emoji = message.content.partition(',emoji ')[2]
+
+            try:
+                REGISTERED_USERS[message.author.name].emoji = emoji
+                reply = f"Alright, {REGISTERED_USERS[message.author.name].charname}, your new emoji is {REGISTERED_USERS[message.author.name].emoji}"
+            except:
+                reply = f"Sorry, {REGISTERED_USERS[message.author.name].charname}, that didn't work! Bummer!"
+
+            await message.channel.send(reply)
+
+        if message.content.startswith(',reset'):
+            #reset = message.content.partition(',reset ')[2]
+
+            try:
+                REGISTERED_USERS[message.author.name].reset()
+                reply = f"Okay, {REGISTERED_USERS[message.author.name].charname}, you're back to how I remember you!"
+            except:
+                reply = f"Sorry, {REGISTERED_USERS[message.author.name].charname}, that didn't work! Bummer!"
+
+            await message.channel.send(reply)
                 
 
         if message.content.startswith(',help'):
             if message.content.startswith(',help rol'):
                 helptext = ",roll <X>d[h<X>] [as <Name>]\nRoll X number of 10-sided dice. Add 'hX' after roll to add hunger dice. Add 'as <Name>' to roll for another character.\nExamples:\n,roll 3d (rolls 3d10)\n,roll 7dh2 as Erika (rolls 5 regular dice and 2 hunger dice for Erika)" 
             elif message.content.startswith(',help reg'):
-                helptext = ",register <Name>\nRegister whoever sent the command as <Name> for the purposes of rolling.\nMakes ',roll <dice> as <Name>' unnecessary until end of session."
+                helptext = ",register <Name>\nRegister whoever sent the command as <Character Name>.\nJosephine will remember registration from one session to the next."
+            elif message.content.startswith(',help icon'):
+                helptext = ",icon :<base Discord emoji>:\nSet icon for current registered character. Can only use the base Discord emoji.\nJosephine will remember icon from one session to the next.\nExample:\n,icon :squid:"
+            elif message.content.startswith(',help emoji'):
+                helptext = ",emoji :<base Discord emoji>:\nSet emoji for current registered character. This appears when a critical is rolled. Can only use the base Discord emoji.\nJosephine will remember emoji from one session to the next.\nExample:\n,emoji :crossed_swords:"
+            elif message.content.startswith(',help reset'):
+                helptext = ",reset\nReset character name, icon, and emoji to the way Josephine prefers them."
             elif message.content.startswith(',help unreg'):
                 helptext = ",unregister\nClear any registrations for whoever sent the command."
             else:
-                helptext = ",help <command>\nCommands are: roll, register, unregister"
+                helptext = ",help <command>\nCommands are: roll, register, unregister, icon, emoji, reset"
             await message.channel.send(helptext)
         
 
