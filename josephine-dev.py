@@ -6,7 +6,7 @@ import discord
 import re
 #import snoop
 
-STORYTELLER='ren_nerd'
+
 REPLY_STRING=""
 
 REGISTERED_USERS = shelve.open("coterie.db", writeback=True)
@@ -245,7 +245,7 @@ async def on_message(message):
             await message.channel.send(reply)
 
         if message.content.startswith(',reset'):
-            #reset = message.content.partition(',reset ')[2]
+            reset = message.content.partition(',reset ')[2]
 
             try:
                 REGISTERED_USERS[message.author.name].reset()
